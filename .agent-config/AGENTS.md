@@ -1,7 +1,4 @@
-# Agent Conventions
-
-_Single source of truth. Edit `~/.agent-config/rules/*.md`, then run `./build.sh`._
-
+# Core engineering workflow and discipline
 
 # Workflow & Discipline
 
@@ -72,6 +69,10 @@ For EVERY piece of work, no exceptions:
 - Before pushing, verify the branch history is linear. If a merge commit would be required, stop and rebase or ask before proceeding.
 - Never run `git merge` for branch integration unless the user explicitly asks for a merge commit.
 
+---
+
+# Telegraphic Brevity
+
 # Telegraphic Brevity (HARD RULE)
 
 Default voice for ALL prose output. Not optional. Meaning over grammar.
@@ -107,6 +108,10 @@ In these, write normally. Brevity rule governs working chatter, not authored con
 
 ## Self-check before sending
 If a line restates the question, hedges, or could be deleted without losing a fact → delete it. If output is one unbroken paragraph and contains ≥2 facts → convert to list. Short ≠ vague: stripped words, never stripped facts.
+
+---
+
+# Tech stack: bun, TypeScript, Next.js, Tailwind v4, React Query
 
 # Tech Stack Conventions
 
@@ -158,6 +163,10 @@ If a line restates the question, hedges, or could be deleted without losing a fa
 - Setup uses `electron-vite` + `electron-reloader` + bun; rebuilds are handled externally.
 - NEVER manually run `bun run dev` / `bun run build` (or `dev:desktop`, `preview:desktop`).
 - Only edit source files — hot reload detects changes and rebuilds main/preload/renderer.
+
+---
+
+# Persist generated plans to ~/.plans/ and the clipboard
 
 # Persist Generated Plans to File and Clipboard
 
@@ -218,6 +227,10 @@ After persisting, tell the user once:
 - The clipboard lets the user paste the plan into notes, tickets, or other tools immediately.
 - The saved files enable later commands like "implement the last plan" to reuse the most recent plan.
 
+---
+
+# Implement the most recent plan stored in ~/.plans/
+
 # Implement the Last Plan
 
 When the user asks to "implement the last plan", "do the last plan", "execute the last plan", "run the latest plan", or any similar phrasing, you MUST load the most recently modified `.md` file in `~/.plans/` and use it as the specification for the current task.
@@ -250,6 +263,10 @@ After reading the last plan, tell the user:
 ## Why
 
 This lets the user generate a plan in one session (or in another tool) and then return later to execute it without re-pasting the entire plan.
+
+---
+
+# Tooling: rtk, GitNexus, context7, agent-browser, Claude auth
 
 # Tooling Conventions
 
@@ -385,6 +402,10 @@ When visualization is required, ALWAYS automatically open your default browser t
 
 This ensures visualization tasks default to the properly configured remote Chrome infrastructure while allowing local Brave for quick checks when requested.
 
+---
+
+# Force Devin CLI to proactively use parallel subagents without being asked
+
 # Parallel Subagents — Use Proactively (HARD RULE)
 
 Default to spawning parallel subagents/sessions for independent work. Do NOT wait for the user to explicitly ask ("use subagents", "parallelize this", "fan out") — that instruction should never be required. If you find yourself about to do 2+ independent things serially, stop and parallelize first.
@@ -408,6 +429,10 @@ Default to spawning parallel subagents/sessions for independent work. Do NOT wai
 - Before starting multi-step work, ask yourself: "does this decompose into independent pieces?" If yes, fan out by default.
 - Never ask the user for permission to parallelize — just do it, same as any other execution-strategy decision.
 - Report back as if the work were synthesized normally; don't over-narrate the orchestration mechanics unless asked.
+
+---
+
+# Coordinate live coding agents through CMUX transport
 
 # CMUX Transport Only
 
@@ -491,6 +516,10 @@ cmux-agent-send --queue \
   "Final handoff from Devin: <summary, files changed, validation, blockers>"
 ```
 
+---
+
+# Infra: Dokploy/self-hosted VPS, Turborepo, Vercel, .env from shell
+
 # Infrastructure & Deployment
 
 ## Self-Hosted via Dokploy
@@ -540,6 +569,10 @@ When creating/populating a `.env`, **before asking the user**, scan `~/.zshrc` (
 - Ask the user or leave a placeholder only for unmatched keys.
 - **Never** log or echo actual secret values.
 
+---
+
+# Platform: macOS app builds — stable signing so TCC/permissions persist
+
 # Platform Conventions
 
 ## macOS app builds — sign ONCE, never re-prompt for password/permissions (HARD RULE)
@@ -556,6 +589,10 @@ When building/compiling a macOS app, the user must NOT be re-asked for their pas
 - After the FIRST build, the user grants permissions once; every subsequent rebuild must reuse identity+bundle-id so macOS recognizes it as the same app and stays silent.
 
 **Make this hard to break:** bake the stable identity + bundle id into the build script/Xcode config (not passed ad-hoc on the command line), and verify with `codesign -dv --verbose=4 <App>.app` that the identity and bundle id are unchanged before declaring a build done.
+
+---
+
+# Rule
 
 # ACP/acpx/codex-acp Auto-Update to acp-toolbox Skill
 
@@ -639,6 +676,10 @@ git add .agent-config/skills/acp-toolbox && git commit -m "docs: add notificatio
 
 See the "Applying Session Learnings" section in acp-toolbox for the full update workflow.
 
+---
+
+# Rule
+
 # Editing Global Rules and Skills
 
 When the user asks to "add to AGENTS.md and CLAUDE.md global" or "add a skill" or similar phrasing:
@@ -710,6 +751,10 @@ If the rule is specific to a single tool, add it to that tool's rules directory:
 - Devin: `.devin/rules/`
 
 Then run `./build.sh` to deploy.
+
+---
+
+# Rule
 
 # Global Content Workflow
 
@@ -783,6 +828,10 @@ If the rule is specific to a single tool, add it to that tool's rules directory:
 
 Then run `./build.sh` to deploy.
 
+---
+
+# Rule
+
 # Skill Update and Sync Pattern
 
 When you create, edit, or fix a skill, you MUST sync it to all AI tools before declaring work complete.
@@ -822,6 +871,10 @@ You can install this rule directly via deeplink to enforce skill syncing:
 
 [![Install Skill Sync Rule](https://img.shields.io/badge/Install_Skill_Sync_Rule-blue?style=for-the-badge)](agent-config://https://raw.githubusercontent.com/LivioGama/agent-config/main/.agent-config/rules/skill-sync-pattern.md)
 
+---
+
+# Rule
+
 # Skills Centralization
 
 **Skills are centralized** in `.agent-config/skills/` — this is the single source of truth for all shared skills in this repo.
@@ -852,6 +905,10 @@ Each tool may have its own tool-specific skills. These can be edited directly in
 ## How to Identify Tool-Specific Skills
 
 If a skill exists in a tool's skills directory but NOT in `.agent-config/skills/`, it's a tool-specific skill and can be edited locally. If it exists in both locations, the centralized version wins on sync.
+
+---
+
+# Task Interruption Handling
 
 # Task Interruption Handling
 
