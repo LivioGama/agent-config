@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleExecutable</key>
+  <string>AgentRulesHandler</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.agentrules.handler</string>
+  <key>CFBundleName</key>
+  <string>Agent Rules Handler</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleShortVersionString</key>
+  <string>1.0</string>
+  <key>CFBundleVersion</key>
+  <string>1</string>
+  <key>LSMinimumSystemVersion</key>
+  <string>10.13</string>
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>Agent Rules Deeplink</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>agent-rules</string>
+      </array>
+    </dict>
+  </array>
+</dict>
+</plist>
