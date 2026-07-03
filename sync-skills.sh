@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
-# Rust-based skills sync script - replaces original shell implementation
+# Pure Rust skills sync script - requires Rust binary
 set -euo pipefail
 cd "$(dirname "$0")"
 
-# Use Rust binary
-if [ -f "target/release/agent-config-sync" ]; then
-    exec target/release/agent-config-sync "$@"
-elif [ -f "target/debug/agent-config-sync" ]; then
-    exec target/debug/agent-config-sync "$@"
-else
-    echo "Error: Rust sync binary not found. Run 'cargo build --release' first."
+RUST_BINARY="target/release/agent-config-sync"
+if [ ! -f "$RUST_BINARY" ]; then
+    echo "Error: Rust sync binary not found at $RUST_BINARY"
+    echo "Run 'cargo build --release' in the agent-config directory first."
     exit 1
 fi
+
+exec "$RUST_BINARY" "$@"

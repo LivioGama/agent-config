@@ -152,46 +152,26 @@ func install(from deeplink: String) throws {
 
     print("Saved to \(destPath.path)")
 
-    guard FileManager.default.isExecutableFile(atPath: buildScript.path) else {
-        // Try Rust build binary instead
-        let rustBuildScript = repoDir.appendingPathComponent("target/release/agent-config-build")
-        if FileManager.default.isExecutableFile(atPath: rustBuildScript.path) {
-            print("Running Rust build binary...")
-            let buildTask = Process()
-            buildTask.executableURL = rustBuildScript
-            buildTask.currentDirectoryURL = repoDir
-            var buildEnv = env
-            buildEnv["AGENT_CONFIG_ROOT"] = configRoot.path
-            buildTask.environment = buildEnv
-            try buildTask.run()
-            buildTask.waitUntilExit()
+    let rustBuildScript = repoDir.appendingPathComponent("target/release/agent-config-build")
+guard FileManager.default.isExecutableFile(atPath: rustBuildScript.path) else {
+    throw HandlerError.message("Rust build binary not found at \(rustBuildScript.path). Run 'cargo build --release' in agent-config directory.")
+}
 
-            guard buildTask.terminationStatus == 0 else {
-                throw HandlerError.message("Rust build failed")
-            }
-            print("Done! \(installKind.label.capitalized) installed and synced.")
-            return
-        } else {
-            throw HandlerError.message("build.sh not found or not executable at \(buildScript.path)")
-        }
-    }
+print("Running Rust build binary...")
+let buildTask = Process()
+buildTask.executableURL = rustBuildScript
+buildTask.currentDirectoryURL = repoDir
+var buildEnv = env
+buildEnv["AGENT_CONFIG_ROOT"] = configRoot.path
+buildTask.environment = buildEnv
+try buildTask.run()
+buildTask.waitUntilExit()
 
-    print("Running build.sh...")
-    let buildTask = Process()
-    buildTask.executableURL = buildScript
-    buildTask.currentDirectoryURL = repoDir
-    var buildEnv = env
-    buildEnv["AGENT_CONFIG_ROOT"] = configRoot.path
-    buildEnv["PATH"] = "/opt/homebrew/bin:/usr/local/bin:\(homeDir.path)/.bun/bin:" + (env["PATH"] ?? "/usr/bin:/bin:/usr/sbin:/sbin")
-    buildTask.environment = buildEnv
-    try buildTask.run()
-    buildTask.waitUntilExit()
+guard buildTask.terminationStatus == 0 else {
+    throw HandlerError.message("Rust build failed")
+}
 
-    guard buildTask.terminationStatus == 0 else {
-        throw HandlerError.message("build.sh failed")
-    }
-
-    print("Done! \(installKind.label.capitalized) installed and synced.")
+print("Done! \(installKind.label.capitalized) installed and synced.")
 }
 
 final class DeeplinkAppDelegate: NSObject, NSApplicationDelegate {

@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
-# Rust-based deeplink handler - replaces original shell implementation
+# Pure Rust deeplink handler - requires Rust binary
 set -euo pipefail
 cd "$(dirname "$0")"
 
-# Use Rust binary
-if [ -f "target/release/agent-config-deeplink" ]; then
-    exec target/release/agent-config-deeplink "$@"
-elif [ -f "target/debug/agent-config-deeplink" ]; then
-    exec target/debug/agent-config-deeplink "$@"
-else
-    echo "Error: Rust deeplink binary not found. Run 'cargo build --release' first."
+RUST_BINARY="target/release/agent-config-deeplink"
+if [ ! -f "$RUST_BINARY" ]; then
+    echo "Error: Rust deeplink binary not found at $RUST_BINARY"
+    echo "Run 'cargo build --release' in the agent-config directory first."
     exit 1
 fi
+
+exec "$RUST_BINARY" "$@"
