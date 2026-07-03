@@ -8,14 +8,10 @@
 /.agent-config/rules/*
 !/.rulesync
 !/.rulesync/**
-!/build.sh
 !/README.md
-!/sync-skills.sh
-!/install.sh
 !/rulesync.jsonc
 !/AgentConfigHandler
 !/AGENT-CONFIG-DEEPLINK.md
-!/handle-deeplink.sh
 !/docs
 !/assets
 !/rules

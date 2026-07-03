@@ -152,14 +152,15 @@ func install(from deeplink: String) throws {
 
     print("Saved to \(destPath.path)")
 
-    let rustBuildScript = repoDir.appendingPathComponent("target/release/agent-config-build")
-guard FileManager.default.isExecutableFile(atPath: rustBuildScript.path) else {
-    throw HandlerError.message("Rust build binary not found at \(rustBuildScript.path). Run 'cargo build --release' in agent-config directory.")
+    let rustBinary = repoDir.appendingPathComponent("target/release/agent-config")
+guard FileManager.default.isExecutableFile(atPath: rustBinary.path) else {
+    throw HandlerError.message("Rust binary not found at \(rustBinary.path). Run 'cargo build --release' in agent-config directory.")
 }
 
 print("Running Rust build binary...")
 let buildTask = Process()
-buildTask.executableURL = rustBuildScript
+buildTask.executableURL = rustBinary
+buildTask.arguments = ["build"]
 buildTask.currentDirectoryURL = repoDir
 var buildEnv = env
 buildEnv["AGENT_CONFIG_ROOT"] = configRoot.path

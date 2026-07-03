@@ -1,10 +1,7 @@
 [workspace]
 members = [
     "agent-config-core",
-    "agent-config-build",
-    "agent-config-sync",
-    "agent-config-deeplink",
-    "agent-config-install",
+    "agent-config",
 ]
 resolver = "2"
 
