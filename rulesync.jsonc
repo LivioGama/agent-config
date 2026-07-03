@@ -1,0 +1,58 @@
+{
+  "$schema": "https://github.com/dyoshikawa/rulesync/releases/latest/download/config-schema.json",
+  "sourceRoots": [
+    ".agent-config"
+  ],
+  "targets": [
+    "amp",
+    "copilot",
+    "copilotcli",
+    "cursor",
+    "claudecode",
+    "codexcli",
+    "goose",
+    "hermesagent",
+    "grokcli",
+    "cline",
+    "kilo",
+    "roo",
+    "rovodev",
+    "takt",
+    "vibe",
+    "qwencode",
+    "reasonix",
+    "kiro-cli",
+    "kiro-ide",
+    "antigravity-cli",
+    "antigravity-ide",
+    "augmentcode",
+    "junie",
+    "devin",
+    "warp",
+    "replit",
+    "pi",
+    "zed",
+    "deepagents",
+    "factorydroid",
+    "opencode"
+  ],
+  "features": [
+    "rules",
+    "ignore",
+    "mcp",
+    "commands",
+    "subagents",
+    "skills"
+  ],
+  "outputRoots": [
+    "."
+  ],
+  "delete": false,
+  "verbose": false,
+  "silent": false,
+  "global": false,
+  "simulateCommands": false,
+  "simulateSubagents": false,
+  "simulateSkills": false,
+  "gitignoreTargetsOnly": true
+}

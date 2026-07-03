@@ -1,6 +1,6 @@
 # Agent Conventions
 
-_Single source of truth. Edit `.agent-config/rules/*.md`, then run `./build.sh`._
+_Single source of truth. Edit `~/.agent-config/rules/*.md`, then run `./build.sh`._
 
 
 # Workflow & Discipline
@@ -299,10 +299,10 @@ Prefer `agent-browser` (at `/opt/homebrew/bin/agent-browser`) for programmatic b
   ```
   agent-browser --engine lightpanda --session main <cmd>
   ```
-- **Use default browser to access remote Chrome for visualization**: When the task requires visual judgment, debugging requires DevTools, or headless cannot reproduce the issue, automatically open your default browser to access the remote Chrome at `https://chrome.liviogama.com`. Authentication: username `livio`, password `securepassword123`.
+- **Use default browser to access remote Chrome for visualization**: When the task requires visual judgment, debugging requires DevTools, or headless cannot reproduce the issue, automatically open your default browser to access the remote Chrome instance configured in your environment. Retrieve the URL and credentials from your local password manager (e.g. Proton Pass) or environment variables — never commit credentials to the repo.
   ```
-  open https://chrome.liviogama.com
-  # Enter credentials when prompted: livio / securepassword123
+  open "$CHROME_REMOTE_URL"
+  # Enter credentials from your password manager when prompted
   ```
 - **Note**: For non-headless testing, remote Chrome is the default. Use local Brave only when explicitly requested for quick local checks.
 - **Reuse the already-open browser** via a named session — NEVER spawn a new browser per call: `agent-browser --session <name> <cmd>`. Default session name `main`.
@@ -319,9 +319,9 @@ Prefer `agent-browser` (at `/opt/homebrew/bin/agent-browser`) for programmatic b
 
 Skills are CENTRALIZED. The single source of truth is **`.agent-config/skills/`** (within the agent-config repo) — author and edit every shared skill THERE, once.
 
-- After creating/editing a skill, run **`./build.sh`** (or `./sync-skills.sh`): it fans the canonical set out to `~/.codex/skills`, `~/.cursor/skills`, `~/.gemini/skills`, `~/.devin/skills`, and re-vaults via chezmoi so genesis + exodus get it too.
+- After creating/editing a skill, run **`./sync-skills.sh`** (called automatically by `./build.sh`): it fans the canonical set out to `~/.codex/skills`, `~/.cursor/skills`, `~/.gemini/skills`, `~/.devin/skills`, `~/.claude/skills`, and re-vaults via chezmoi so genesis + exodus get it too.
 - The fanout is ADDITIVE — each tool keeps its own tool-specific skills (e.g. codex `codex-primary-runtime`/`harness`, cursor `gitnexus-*`). Those tool-specific ones may be edited in place.
-- NEVER hand-edit a shared skill inside `~/.codex|.cursor|.gemini|.devin|.claude/skills` — it will be overwritten on the next build. Edit the canonical `.agent-config/skills/<name>/SKILL.md`.
+- NEVER hand-edit a shared skill inside `~/.codex|.cursor|.gemini|.devin|.claude/skills` — it will be overwritten on the next sync. Edit the canonical `.agent-config/skills/<name>/SKILL.md`.
 - Deleting a shared skill everywhere is a job for the cleanup-console, not the fanout.
 
 ## Claude auth — OAuth ONLY, `ANTHROPIC_API_KEY` is BANNED everywhere
@@ -341,24 +341,24 @@ In the Swarness project: NEVER use `acpx` (no `bunx acpx`, no acpx subprocess ca
 
 Never use local Chrome for testing. Use headless Lightpanda by default for programmatic testing, or open your default browser to access remote Chrome when visual verification is necessary.
 
-Use agent-browser for programmatic browser automation when needed. Prefer `--engine lightpanda`; for visual review, open your default browser to access remote Chrome at `https://chrome.liviogama.com`.
+Use agent-browser for programmatic browser automation when needed. Prefer `--engine lightpanda`; for visual review, open your default browser to access remote Chrome using the URL configured in your environment.
 
 ## Non-headless browser testing — remote Chrome by default, local Brave on request
 
 When running browser tests that require non-headless (visible) execution:
 
-- **DEFAULT**: Open your default browser to access the remote Chrome at `https://chrome.liviogama.com` with authentication
+- **DEFAULT**: Open your default browser to access the remote Chrome instance using the URL configured in your environment. Retrieve credentials from your local password manager (e.g. Proton Pass) or environment variables.
 - **EXCEPTION**: When user explicitly requests local Brave for quick checks
 
 ### Remote Chrome (default for visualization)
-- **Remote Chrome instance**: `https://chrome.liviogama.com`
-- **Authentication**: Username `livio`, password `securepassword123`
+- **Remote Chrome instance**: use the URL configured in your environment (e.g. `$CHROME_REMOTE_URL`); never commit the URL or credentials to the repo
+- **Authentication**: retrieve credentials from your password manager or environment variables; never hardcode them
 - **Features**: Dark theme enabled, Proton Pass ready for installation
 - **Usage**: Open the URL in your default browser, enter credentials when prompted
 
 ### Required remote Chrome usage patterns:
-- **Automatic opening**: Always use `open https://chrome.liviogama.com` when visualization is needed
-- **Authentication**: Enter credentials when prompted (livio / securepassword123)
+- **Automatic opening**: Always use `open "$CHROME_REMOTE_URL"` when visualization is needed
+- **Authentication**: Enter credentials from your password manager when prompted
 - **Never use local browsers** for visualization unless explicitly requested
 - **Always use remote Chrome** for debugging, visual review, and interactive testing
 
@@ -370,8 +370,8 @@ When running browser tests that require non-headless (visible) execution:
 ### Examples:
 ```bash
 # Remote Chrome (default for visualization)
-open https://chrome.liviogama.com
-# Enter credentials: livio / securepassword123
+open "$CHROME_REMOTE_URL"
+# Enter credentials from your password manager when prompted
 
 # Local Brave (only when user explicitly requests quick check)
 agent-browser --headed --executable-path "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" --session main screenshot
@@ -379,7 +379,7 @@ agent-browser --headed --executable-path "/Applications/Brave Browser.app/Conten
 
 ### Auto-open requirement
 When visualization is required, ALWAYS automatically open your default browser to access remote Chrome:
-- **Visualization tasks**: Use `open https://chrome.liviogama.com` to launch your default browser
+- **Visualization tasks**: Use `open "$CHROME_REMOTE_URL"` to launch your default browser
 - **Interactive testing**: Navigate to your local dev server from within the remote Chrome
 - **Never skip the auto-open** when visual judgment is part of the task
 
@@ -575,7 +575,7 @@ This is not optional housekeeping. It is part of finishing the fix. Do it before
    - If it's a general pattern, add to the relevant section (TypeScript, Shell, General Patterns, or Agent-Specific Quirks)
 3. **Commit the skill update**:
    ```bash
-   cd ~/agent-rules
+   cd ~/agent-config
    git add .agent-config/skills/acp-toolbox
    git commit -m "docs: [what you learned/fix] in acp-toolbox"
    git push
@@ -628,7 +628,7 @@ Update acp-toolbox when you:
 ```bash
 # Fix the bug in code
 # Then update acp-toolbox
-cd ~/agent-rules
+cd ~/agent-config
 vim .agent-config/skills/acp-toolbox/SKILL.md
 # Add: "Gotcha: ACP notifications have no 'id' field, use 'method' to detect type"
 git add .agent-config/skills/acp-toolbox && git commit -m "docs: add notification id gotcha" && git push
@@ -649,23 +649,23 @@ Instead, edit the source and let it pass through to the tools.
 
 ## Rules Workflow
 
-1. **Add the rule to the source**: Create or edit a file in `rules/`
+1. **Add the rule to the source**: Create or edit a file in `.agent-config/rules/`
 2. **Regenerate configs**: Run `./build.sh` (this syncs the rule to all tool directories)
 3. **Verify deployment**: Check that the rule appears in the generated files
-4. **Commit and push**: `git add rules/ && git commit -m "..." && git push`
+4. **Commit and push**: `git add .agent-config/rules/ rules/ AGENTS.md && git commit -m "..." && git push`
 
 ## Skills Workflow
 
-1. **Add the skill to the source**: Create or edit in `~/.agents/skills/<skill-name>/SKILL.md`
+1. **Add the skill to the source**: Create or edit in `.agent-config/skills/<skill-name>/SKILL.md`
 2. **Sync to all tools**: Run `./sync-skills.sh` (fans out to `~/.codex/skills`, `~/.cursor/skills`, `~/.gemini/skills`, `~/.devin/skills`, `~/.claude/skills`)
-3. **Commit changes to agent-rules repo if needed**
+3. **Commit changes to agent-config repo if needed**
 
 ## Why This Matters
 
 - The tool directories (`~/.claude/`, `~/.codex/`, etc.) contain **generated files**
 - Editing them directly will be **overwritten** the next time `./build.sh` or `./sync-skills.sh` runs
-- The source of truth for rules is `rules/*.md` in this agent-config repo
-- The source of truth for skills is `~/.agents/skills/`
+- The source of truth for rules is `.agent-config/rules/*.md` in this agent-config repo
+- The source of truth for skills is `.agent-config/skills/` in this agent-config repo
 - The build script fans out rules to all tools automatically
 - The sync script fans out skills to all tools automatically
 
@@ -681,11 +681,11 @@ vim ~/.codex/AGENTS.md
 ✅ **Correct (Rules):**
 ```bash
 # Edit the source rule in agent-config
-vim rules/my-new-rule.md
+vim .agent-config/rules/my-new-rule.md
 # Regenerate and sync to all tools
 ./build.sh
 # Commit
-git add rules/ && git commit -m "add: my new rule" && git push
+git add .agent-config/rules/ rules/ AGENTS.md && git commit -m "add: my new rule" && git push
 ```
 
 ❌ **Wrong (Skills):**
@@ -697,7 +697,7 @@ vim ~/.codex/skills/my-skill/SKILL.md
 ✅ **Correct (Skills):**
 ```bash
 # Edit the source skill
-vim ~/.agents/skills/my-skill/SKILL.md
+vim .agent-config/skills/my-skill/SKILL.md
 # Sync to all tools
 ./sync-skills.sh
 ```
@@ -721,23 +721,23 @@ Instead, edit the source and let it pass through to the tools.
 
 ## Rules Workflow
 
-1. **Add the rule to the source**: Create or edit a file in `rules/`
+1. **Add the rule to the source**: Create or edit a file in `~/.agent-config/rules/`
 2. **Regenerate configs**: Run `./build.sh` (this syncs the rule to all tool directories)
 3. **Verify deployment**: Check that the rule appears in the generated files
-4. **Commit and push**: `git add rules/ && git commit -m "..." && git push`
+4. **Commit and push**: `cd ~/agent-config && git add .agent-config/rules/ .agent-config/AGENTS.md rules/ && git commit -m "..." && git push`
 
 ## Skills Workflow
 
-1. **Add the skill to the source**: Create or edit in `~/.agents/skills/<skill-name>/SKILL.md`
+1. **Add the skill to the source**: Create or edit in `~/.agent-config/skills/<skill-name>/SKILL.md`
 2. **Sync to all tools**: Run `./sync-skills.sh` (fans out to `~/.codex/skills`, `~/.cursor/skills`, `~/.gemini/skills`, `~/.devin/skills`, `~/.claude/skills`)
-3. **Commit changes to agent-rules repo if needed**
+3. **Commit changes to agent-config repo if needed**
 
 ## Why This Matters
 
 - The tool directories (`~/.claude/`, `~/.codex/`, etc.) contain **generated files**
 - Editing them directly will be **overwritten** the next time `./build.sh` or `./sync-skills.sh` runs
-- The source of truth for rules is `rules/*.md` in this agent-config repo
-- The source of truth for skills is `~/.agents/skills/`
+- The source of truth for rules is `~/.agent-config/rules/*.md`
+- The source of truth for skills is `~/.agent-config/skills/`
 - The build script fans out rules to all tools automatically
 - The sync script fans out skills to all tools automatically
 
@@ -753,11 +753,11 @@ vim ~/.codex/AGENTS.md
 ✅ **Correct (Rules):**
 ```bash
 # Edit the source rule in agent-config
-vim rules/my-new-rule.md
+vim ~/.agent-config/rules/my-new-rule.md
 # Regenerate and sync to all tools
 ./build.sh
 # Commit
-git add rules/ && git commit -m "add: my new rule" && git push
+cd ~/agent-config && git add .agent-config/rules/ .agent-config/AGENTS.md rules/ && git commit -m "add: my new rule" && git push
 ```
 
 ❌ **Wrong (Skills):**
@@ -769,7 +769,7 @@ vim ~/.codex/skills/my-skill/SKILL.md
 ✅ **Correct (Skills):**
 ```bash
 # Edit the source skill
-vim ~/.agents/skills/my-skill/SKILL.md
+vim ~/.agent-config/skills/my-skill/SKILL.md
 # Sync to all tools
 ./sync-skills.sh
 ```
@@ -792,7 +792,7 @@ When you create, edit, or fix a skill, you MUST sync it to all AI tools before d
 1. **Create or edit the skill** in `.agent-config/skills/your-skill/SKILL.md`
 2. **Commit the skill changes**:
    ```bash
-   cd ~/agent-rules
+   cd ~/agent-config
    git add .agent-config/skills/your-skill
    git commit -m "docs: update your-skill with [changes]"
    git push
@@ -812,7 +812,7 @@ When you create, edit, or fix a skill, you MUST sync it to all AI tools before d
 
 ## Quick Reference
 
-**Sync script location:** `~/agent-rules/sync-skills.sh`  
+**Sync script location:** `~/agent-config/sync-skills.sh`  
 **Canonical skills source:** `.agent-config/skills/` (within agent-config repo)  
 **Tool destinations:** `~/.codex/skills`, `~/.cursor/skills`, `~/.devin/skills`, `~/.claude/skills`, `~/.gemini/skills`
 
@@ -820,11 +820,11 @@ When you create, edit, or fix a skill, you MUST sync it to all AI tools before d
 
 You can install this rule directly via deeplink to enforce skill syncing:
 
-[![Install Skill Sync Rule](https://img.shields.io/badge/Install_Skill_Sync_Rule-blue?style=for-the-badge)](agent-rules://https://raw.githubusercontent.com/LivioGama/agent-config/main/.agent-config/rules/skill-sync-pattern.md)
+[![Install Skill Sync Rule](https://img.shields.io/badge/Install_Skill_Sync_Rule-blue?style=for-the-badge)](agent-config://https://raw.githubusercontent.com/LivioGama/agent-config/main/.agent-config/rules/skill-sync-pattern.md)
 
 # Skills Centralization
 
-**Skills are centralized** in `~/.agents/skills/` — this is the single source of truth for all shared skills.
+**Skills are centralized** in `.agent-config/skills/` — this is the single source of truth for all shared skills in this repo.
 
 ## Golden Rule
 
@@ -832,13 +832,13 @@ You can install this rule directly via deeplink to enforce skill syncing:
 
 ## Workflow
 
-1. **Edit** skills in the canonical location: `~/.agents/skills/<skill-name>/SKILL.md`
-2. **Sync** to all tools: `cd ~/agent-rules && ./sync-skills.sh`
-3. **Commit** changes to agent-rules repo if needed
+1. **Edit** skills in the canonical location: `.agent-config/skills/<skill-name>/SKILL.md`
+2. **Sync** to all tools: `cd ~/agent-config && ./sync-skills.sh`
+3. **Commit** changes to agent-config repo if needed
 
 ## What Gets Synced
 
-The sync script fans out skills from `~/.agents/skills/` to:
+The sync script fans out skills from `.agent-config/skills/` to:
 - `~/.codex/skills/`
 - `~/.cursor/skills/`
 - `~/.gemini/skills/`
@@ -851,7 +851,7 @@ Each tool may have its own tool-specific skills. These can be edited directly in
 
 ## How to Identify Tool-Specific Skills
 
-If a skill exists in a tool's skills directory but NOT in `~/.agents/skills/`, it's a tool-specific skill and can be edited locally. If it exists in both locations, the centralized version wins on sync.
+If a skill exists in a tool's skills directory but NOT in `.agent-config/skills/`, it's a tool-specific skill and can be edited locally. If it exists in both locations, the centralized version wins on sync.
 
 # Task Interruption Handling
 

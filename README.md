@@ -6,13 +6,25 @@ Centralized rule system for Codex, Claude Code, Devin, Cursor, and 30+ AI tools.
 
 ## ✨ Features
 
-🎯 **Single source** — Edit once in `.agent-config/rules/`, regenerate everywhere  
+🎯 **Single source** — Edit once in `~/.agent-config/rules/`, regenerate everywhere
 ⚡ **30+ tools** — Codex, Claude Code, Devin, Cursor, Copilot, Goose, Cline, Kilo, Roo, Warp, Zed  
-🔄 **Skills sync** — Canonical `.agent-config/skills/` fans out to all tools  
-🔗 **Deeplinks** — Cross-platform `agent-rules://` URLs install rules instantly  
+🔄 **Skills sync** — Canonical `~/.agent-config/skills/` fans out to all tools
+🔗 **Deeplinks** — Cross-platform `agent-config://` URLs install rules instantly  
 🛡️ **Safety** — ANTHROPIC_API_KEY ban, stable macOS signing, infra patterns  
 
 ## 🔧 Installation
+
+**Homebrew:**
+```bash
+brew install liviogama/tap/agent-config
+```
+
+Then use:
+```bash
+agent-config --help
+agent-config build
+agent-config install-handler
+```
 
 **One-line install (registers handler & clones repo):**
 ```bash
@@ -37,21 +49,21 @@ Deploys to `~/.claude/`, `~/.codex/`, `~/.devin/`, `~/.cursor/`, `~/.gemini/`.
 
 **Add a rule:**
 ```bash
-vim .agent-config/rules/my-rule.md
-./build.sh
+vim ~/.agent-config/rules/my-rule.md
+cd ~/agent-config && ./build.sh
 git add . && git commit -m "add: my rule" && git push
 ```
 
 **Install via deeplink:**
 ```bash
 # Install handler first (macOS/Linux/Windows - see docs/deeplink.md)
-open 'agent-rules://https://raw.githubusercontent.com/user/repo/main/rule.md'
+open 'agent-config://https://raw.githubusercontent.com/user/repo/main/rule.md'
 ```
 
 **Use in project:**
 ```bash
-cp -r ~/agent-config/.agent-config ./my-project/
-cp ~/agent-config/AGENTS.md ./my-project/
+cp -r ~/.agent-config ./my-project/.agent-config
+cp ~/.agent-config/AGENTS.md ./my-project/AGENTS.md
 ```
 
 ## 📖 Documentation
@@ -65,7 +77,7 @@ cp ~/agent-config/AGENTS.md ./my-project/
 
 ## 🤝 Contributing
 
-1. Add rule → `.agent-config/rules/your-rule.md`
+1. Add rule → `~/.agent-config/rules/your-rule.md`
 2. Run `./build.sh` to deploy
 3. Commit and push
 
