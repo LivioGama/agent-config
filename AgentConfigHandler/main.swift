@@ -153,7 +153,27 @@ func install(from deeplink: String) throws {
     print("Saved to \(destPath.path)")
 
     guard FileManager.default.isExecutableFile(atPath: buildScript.path) else {
-        throw HandlerError.message("build.sh not found or not executable at \(buildScript.path)")
+        // Try Rust build binary instead
+        let rustBuildScript = repoDir.appendingPathComponent("target/release/agent-config-build")
+        if FileManager.default.isExecutableFile(atPath: rustBuildScript.path) {
+            print("Running Rust build binary...")
+            let buildTask = Process()
+            buildTask.executableURL = rustBuildScript
+            buildTask.currentDirectoryURL = repoDir
+            var buildEnv = env
+            buildEnv["AGENT_CONFIG_ROOT"] = configRoot.path
+            buildTask.environment = buildEnv
+            try buildTask.run()
+            buildTask.waitUntilExit()
+
+            guard buildTask.terminationStatus == 0 else {
+                throw HandlerError.message("Rust build failed")
+            }
+            print("Done! \(installKind.label.capitalized) installed and synced.")
+            return
+        } else {
+            throw HandlerError.message("build.sh not found or not executable at \(buildScript.path)")
+        }
     }
 
     print("Running build.sh...")
