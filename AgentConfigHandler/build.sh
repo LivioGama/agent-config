@@ -3,7 +3,7 @@ set -e
 
 cd "$(dirname "$0")"
 
-APP_NAME="AgentRulesHandler"
+APP_NAME="AgentConfigHandler"
 APP_BUNDLE="${HOME}/Applications/${APP_NAME}.app"
 CONTENTS="$APP_BUNDLE/Contents"
 MACOS="$CONTENTS/MacOS"
@@ -29,5 +29,5 @@ chmod +x "$MACOS/$APP_NAME"
 codesign --force --deep --options runtime --sign - "$APP_BUNDLE"
 
 echo "Built $APP_BUNDLE"
-echo "URL scheme agent-rules:// is now registered"
-echo "Test with: open 'agent-rules://https://example.com/rule.md'"
+echo "URL scheme agent-config:// is now registered"
+echo "Test with: open 'agent-config://https://example.com/rule.md'"

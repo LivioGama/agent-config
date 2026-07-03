@@ -2,7 +2,7 @@
 
 ## Single Source of Truth
 
-Edit `.agent-config/rules/*.md`, never the generated files. The build script regenerates all per-tool configs from the source.
+Edit `~/.agent-config/rules/*.md`, never the generated files. The build script regenerates all per-tool configs from the source.
 
 ## Additive Fanout
 
@@ -22,7 +22,7 @@ BUILD → VERIFY → NEXT workflow enforced in rules. Developers run their code;
 
 ## Centralization
 
-All shared skills live in `.agent-config/skills/` within the repo. Tool-specific skills can exist in tool directories but are edited in place.
+All shared skills live in `~/.agent-config/skills/`. Tool-specific skills can exist in tool directories but are edited in place.
 
 ## Cross-Platform
 

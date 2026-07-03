@@ -4,7 +4,7 @@
 
 ```bash
 # Create a new rule in the source
-cat > .agent-config/rules/20-my-rule.md << 'EOF'
+cat > ~/.agent-config/rules/20-my-rule.md << 'EOF'
 # My Custom Rule
 
 This is a custom rule for my workflow.
@@ -18,8 +18,8 @@ EOF
 # Regenerate configs
 ./build.sh
 
-# Verify it appears in AGENTS.md
-grep "My Custom Rule" AGENTS.md
+# Verify it appears in ~/.agent-config/AGENTS.md
+grep "My Custom Rule" ~/.agent-config/AGENTS.md
 ```
 
 ## Adding a Tool-Specific Rule
@@ -40,19 +40,19 @@ EOF
 
 ```bash
 # Drop the rules into any project
-cp -r ~/agent-config/.agent-config ./my-project/
-cp ~/agent-config/AGENTS.md ./my-project/
+cp -r ~/.agent-config ./my-project/.agent-config
+cp ~/.agent-config/AGENTS.md ./my-project/AGENTS.md
 
 # Your AI tools will now use these rules in that project
 ```
 
 ## Skills Workflow
 
-Skills are centralized in `.agent-config/skills/`. After editing:
+Skills are centralized in `~/.agent-config/skills/`. After editing:
 
 ```bash
 # Edit skill
-vim .agent-config/skills/my-skill/SKILL.md
+vim ~/.agent-config/skills/my-skill/SKILL.md
 
 # Commit to repo
 git add .agent-config/skills/my-skill

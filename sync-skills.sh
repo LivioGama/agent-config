@@ -6,7 +6,7 @@
 # job for the cleanup-console, not this sync.
 set -euo pipefail
 
-# Use repo path if we're in the agent-rules directory, otherwise use home directory
+# Use repo path if we're in the agent-config directory, otherwise use home directory
 if [ -d ".agent-config/skills" ]; then
   CANON=".agent-config/skills"
 elif [ -d "$HOME/.agents/skills" ]; then
