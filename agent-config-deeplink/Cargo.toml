@@ -1,0 +1,22 @@
+[package]
+name = "agent-config-deeplink"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "agent-config-deeplink"
+path = "src/main.rs"
+
+[dependencies]
+agent-config-core = { path = "../agent-config-core" }
+anyhow = { workspace = true }
+clap = { version = "4.4", features = ["derive"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+reqwest = { workspace = true }
+tokio = { workspace = true }
+dirs = "5.0"
+percent-encoding = "2.3"

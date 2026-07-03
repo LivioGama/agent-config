@@ -1,0 +1,21 @@
+[package]
+name = "agent-config-build"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "agent-config-build"
+path = "src/main.rs"
+
+[dependencies]
+agent-config-core = { path = "../agent-config-core" }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+clap = { version = "4.4", features = ["derive", "env"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+which = "6.0"
+dirs = "5.0"

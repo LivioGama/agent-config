@@ -1,0 +1,18 @@
+[package]
+name = "agent-config-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_yaml = { workspace = true }
+regex = { workspace = true }
+walkdir = { workspace = true }
+tracing = { workspace = true }
+dirs = "5.0"

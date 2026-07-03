@@ -9,13 +9,17 @@
 !/.rulesync
 !/.rulesync/**
 !/build.sh
+!/build-rust.sh
 !/README.md
 !/sync-skills.sh
+!/sync-skills-rust.sh
 !/install.sh
+!/install-rust.sh
 !/rulesync.jsonc
 !/AgentConfigHandler
 !/AGENT-CONFIG-DEEPLINK.md
 !/handle-deeplink.sh
+!/handle-deeplink-rust.sh
 !/docs
 !/assets
 !/rules
@@ -23,4 +27,7 @@
 !/AgentConfigHandler/*.sh
 !/AgentConfigHandler/*.ps1
 !/AgentConfigHandler/*.bat
-**/.DS_Store
+!/Cargo.toml
+!/Cargo.lock
+!/agent-config-*/
+!/.gitignore
