@@ -163,6 +163,9 @@
             const path = urlParams.get('path');
             let targetUrl = urlParams.get('url');
 
+            // Install link should always point to agent-config repo (where installation docs are)
+            document.getElementById('install-link').href = 'https://github.com/LivioGama/agent-config#-installation';
+
             let username = "LivioGama";
             let repo = "agent-config";
 
@@ -187,8 +190,6 @@
                     repo = pathSegments[0];
                 }
             }
-
-            document.getElementById('install-link').href = 'https://github.com/' + username + '/' + repo;
 
             if (path) {
                 targetUrl = 'https://raw.githubusercontent.com/' + username + '/' + repo + '/main/' + path;
