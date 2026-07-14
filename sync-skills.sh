@@ -15,7 +15,7 @@ else
   exit 0
 fi
 
-TOOLS=(codex cursor gemini devin claude)
+TOOLS=(codex cursor gemini claude)
 EXCLUDES=(--exclude='.git' --exclude='.DS_Store' --exclude='*.zip' --exclude='benchmark-playground')
 
 for t in "${TOOLS[@]}"; do
