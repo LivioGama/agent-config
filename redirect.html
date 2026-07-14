@@ -198,15 +198,74 @@
             if (targetUrl && targetUrl.startsWith('https://')) {
                 const deeplink = 'agent-config://' + encodeURIComponent(targetUrl);
                 const retryLink = document.getElementById('retry-link');
+                const statusEl = document.getElementById('status');
+                const headerEl = document.getElementById('header');
+                
                 retryLink.href = deeplink;
                 retryLink.addEventListener('click', function(event) {
                     event.preventDefault();
+                    
+                    // Update UI to show we're attempting to launch
+                    retryLink.textContent = 'Launching...';
+                    retryLink.style.opacity = '0.7';
+                    retryLink.style.pointerEvents = 'none';
+                    statusEl.textContent = 'Attempting to open Agent Config Handler...';
+                    
+                    // Track if window loses focus (handler opened)
+                    let handlerOpened = false;
+                    const blurHandler = () => {
+                        handlerOpened = true;
+                        headerEl.textContent = 'Handler Launched!';
+                        statusEl.textContent = 'Agent Config Handler should be opening. Check your taskbar or applications.';
+                        retryLink.textContent = 'Launched ✓';
+                        retryLink.style.backgroundColor = '#2ea043';
+                    };
+                    
+                    window.addEventListener('blur', blurHandler);
+                    
+                    // Attempt to open the deeplink
                     window.location.assign(deeplink);
+                    
+                    // Check after 2 seconds if handler didn't open
+                    setTimeout(() => {
+                        window.removeEventListener('blur', blurHandler);
+                        
+                        if (!handlerOpened) {
+                            // Handler likely not installed
+                            headerEl.textContent = 'Handler Not Found';
+                            statusEl.textContent = 'Agent Config Handler may not be installed. Please install it first.';
+                            retryLink.textContent = 'Try Again';
+                            retryLink.style.opacity = '1';
+                            retryLink.style.pointerEvents = 'auto';
+                            retryLink.style.backgroundColor = '#d73a49';
+                            
+                            // Scroll to install link
+                            document.getElementById('install-info').scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }, 2000);
                 });
+                
                 document.getElementById('debug').innerText = 'Installing from: ' + targetUrl;
                 
-                // Attempt to open the deeplink
-                window.location.assign(deeplink);
+                // Attempt to open the deeplink automatically on page load
+                setTimeout(() => {
+                    statusEl.textContent = 'Attempting to open Agent Config Handler...';
+                    window.location.assign(deeplink);
+                    
+                    // Check after 2 seconds if handler didn't open
+                    setTimeout(() => {
+                        if (document.visibilityState === 'visible') {
+                            // Handler likely not installed
+                            headerEl.textContent = 'Handler Not Found';
+                            statusEl.textContent = 'Agent Config Handler may not be installed. Please install it first.';
+                            retryLink.textContent = 'Launch Handler';
+                            retryLink.style.backgroundColor = '#d73a49';
+                            
+                            // Scroll to install link
+                            document.getElementById('install-info').scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }, 2000);
+                }, 500);
 
                 // Load and render markdown preview
                 fetchMarkdown(targetUrl);
