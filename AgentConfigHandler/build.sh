@@ -19,6 +19,11 @@ mkdir -p "$RESOURCES"
 # Copy Info.plist
 cp Info.plist "$CONTENTS/"
 
+# Copy app icon
+if [ -f "${APP_NAME}.icns" ]; then
+  cp "${APP_NAME}.icns" "$RESOURCES/"
+fi
+
 # Compile Swift executable
 swiftc -o "$MACOS/$APP_NAME" main.swift
 

@@ -16,6 +16,8 @@
   <string>1</string>
   <key>LSMinimumSystemVersion</key>
   <string>10.13</string>
+  <key>CFBundleIconFile</key>
+  <string>AgentConfigHandler</string>
   <key>CFBundleURLTypes</key>
   <array>
     <dict>

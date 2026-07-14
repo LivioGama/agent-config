@@ -179,27 +179,77 @@ final class DeeplinkAppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func handleGetURLEvent(_ event: NSAppleEventDescriptor, withReplyEvent replyEvent: NSAppleEventDescriptor) {
         didReceiveURL = true
+        
+        // Bring app to front so user sees the alert
+        NSApp.activate(ignoringOtherApps: true)
 
         guard let deeplink = event.paramDescriptor(forKeyword: keyDirectObject)?.stringValue else {
-            reportError("Missing URL in Apple Event")
+            showError("Missing URL in Apple Event")
             NSApp.terminate(nil)
             return
         }
 
         do {
             try install(from: deeplink)
+            showSuccess("Agent Config installed successfully!")
+            // Auto-close after showing success
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                NSApp.terminate(nil)
+            }
         } catch {
-            reportError(error)
+            showError("Installation failed: \(error)")
+            // Auto-close after showing error
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                NSApp.terminate(nil)
+            }
         }
-
-        NSApp.terminate(nil)
+    }
+    
+    func showSuccess(_ message: String) {
+        DispatchQueue.main.async {
+            let alert = NSAlert()
+            alert.messageText = "Success"
+            alert.informativeText = message
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
+    }
+    
+    func showError(_ message: String) {
+        DispatchQueue.main.async {
+            let alert = NSAlert()
+            alert.messageText = "Error"
+            alert.informativeText = message
+            alert.alertStyle = .critical
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+        }
     }
 }
 
 if let deeplink = CommandLine.arguments.dropFirst().first {
     do {
         try install(from: deeplink)
-        exit(0)
+        // Show success alert for command-line invocation too
+        let app = NSApplication.shared
+        app.setActivationPolicy(.regular)
+        app.activate(ignoringOtherApps: true)
+        
+        DispatchQueue.main.async {
+            let alert = NSAlert()
+            alert.messageText = "Success"
+            alert.informativeText = "Agent Config installed successfully!"
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            // Auto-close after showing success
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                NSApp.terminate(nil)
+            }
+        }
+        
+        app.run()
     } catch {
         reportError(error)
         exit(1)
@@ -215,7 +265,7 @@ NSAppleEventManager.shared().setEventHandler(
 )
 
 let app = NSApplication.shared
-app.setActivationPolicy(.accessory)
+app.setActivationPolicy(.regular) // Changed to regular to show alerts properly
 app.delegate = delegate
 
 DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
