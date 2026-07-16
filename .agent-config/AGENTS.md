@@ -586,35 +586,6 @@ The agent's own terminal/pane must NEVER block. Anything interactive, long-runni
 
 A blocked agent pane means the whole loop stalls on a prompt nobody will answer. Side panes keep interactivity available to the human while the agent stays unblocked — this is the smart default, always.
 
-# Offload Long Tasks to a VPS (HARD RULE)
-
-If a task is expected to take **more than ~30 seconds of compute**, it does NOT run on the local Mac. Offload it to one of the VPSes and stream results back.
-
-## Applies to
-
-- Full test suites, e2e suites, coverage runs (`bun test --coverage`, `cargo test`, playwright suites)
-- Release/production builds, `cargo build --release`, big `turbo build` graphs, Docker image builds
-- Bulk lint/typecheck sweeps over large repos, codemods, migrations, benchmarks
-- Long analyses (indexing, dataset processing, load tests)
-
-Quick iterative feedback stays local: single-file tests, incremental `cargo check` on a small crate, one lint target, anything genuinely <30s.
-
-## Where and how
-
-| Target | SSH | Notes |
-|---|---|---|
-| genesis | `ssh genesis` | 100.105.74.25 |
-| exodus | `ssh exodus` | 100.113.187.15 |
-
-- Always wrap remote output in `rtk` (installed on both VPSes): `ssh genesis 'rtk cargo test ...'`.
-- Sync the working tree first (use the `repo-vps-sync` skill: `repo-sync push genesis`), run remotely, pull artifacts/results back.
-- `suparun` is available on both VPSes for job-style runs when explicitly configured.
-- Run remote jobs detached (`run_in_background`, `nohup`, or a queue) so the local agent keeps working; poll for completion.
-
-## Why
-
-Long jobs on the Mac heat it, starve the interactive session, and serialize the agent. The VPSes are idle capacity — a >30s task on localhost is a bug in the workflow.
-
 # Browser Automation: agent-browser ONLY (HARD RULE)
 
 `agent-browser` (at `/opt/homebrew/bin/agent-browser`) is the ONLY tool for browser automation. Never drive a browser any other way — no raw Playwright/Puppeteer scripts spawning their own Chromium, no local Chrome/Chromium launches, no ad-hoc Selenium.
