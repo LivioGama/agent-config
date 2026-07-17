@@ -331,7 +331,7 @@ ALWAYS prefix shell commands with `rtk`. It applies a token-saving filter when i
 - Use `rtk` even inside `&&` chains: `rtk git add && rtk git commit -m "msg" && rtk git push`.
 - Substitutions:
   - `ls`/`tree` → `rtk ls <path>`
-  - `cat`/`head`/`tail` → `rtk read <file>` (`-l aggressive` for code)
+  - `cat`/`head`/`tail` → use plain `cat`/`head`/`tail` for session-init and hook-restricted bootstrap docs; otherwise `rtk read <file>` (`-l aggressive` for code)
   - `find`/`fd` → `rtk find <pattern>`
   - `grep`/`rg` → `rtk grep <pattern>`
   - `git *` → `rtk git *` (status, log, diff, add, commit, push, pull — passthrough covers all subcommands)
