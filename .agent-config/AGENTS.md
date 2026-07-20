@@ -1010,6 +1010,103 @@ If the rule is specific to a single tool, add it to that tool's rules directory:
 
 Then run `./build.sh` to deploy.
 
+# Inmo Ship Fast Sync Rules (HARD RULE)
+
+The `inmo` repo (`github.com/ShipFastAI/inmo`) contains `apps/ship-fast-agent`, which is a fork of `omni/apps/omni-agent` (`github.com/omni3ai/omni`). When syncing changes from omni to inmo, follow these rules strictly.
+
+## Server Isolation (HARD RULE)
+
+- **`ssh o` = 75.119.153.19 = omni server** (Dokploy at `dokploy.omni3.ai`, app at `agent.omni3.ai`)
+- **`ssh exodus` = 178.105.58.38 = Ship Fast server** (Dokploy at `dokploy.devliv.io`, app at `agent.ship-fast.ai`)
+- **NEVER deploy Ship Fast infrastructure on `ssh o`.** Always deploy on `ssh exodus`.
+- **NEVER deploy Omni infrastructure on `ssh exodus`.** Always deploy on `ssh o`.
+- Before deploying anything, verify the target server with `ssh <alias> hostname` and confirm it matches the expected IP.
+
+## Sync Workflow (HARD RULE)
+
+When syncing commits from `omni/apps/omni-agent` to `inmo/apps/ship-fast-agent`:
+
+1. **Check the source branch first.** Always verify which branch you're syncing from:
+   ```bash
+   cd ~/Documents/omni && git branch --show-current
+   cd ~/Documents/omni && git log --oneline -5
+   ```
+   Do NOT assume you're on `main`. The latest changes may be on a feature branch.
+
+2. **Identify missing commits:**
+   ```bash
+   cd ~/Documents/inmo && git log --oneline -5
+   ```
+   Compare with omni. Cherry-pick or merge missing commits.
+
+3. **Rename omni references during sync.** After importing code:
+   - `omni-agent` → `ship-fast-agent` (in paths, package names, env vars)
+   - `omni_agent` → `ship_fast_agent` (in Python module names, imports)
+   - `omni_review` → `ship_fast_review` (file names, imports)
+   - `omni_events` → `ship_fast_events` (file names, imports)
+   - `omni-agent-bot` → `ship-fast-agent-bot` (pyproject.toml name, uv.lock)
+   - `agent.omni3.ai` → `agent.ship-fast.ai` (URLs in tests, config)
+   - `db-agent.omni3.ai` → `db-agent.ship-fast.ai` (PocketBase URL)
+
+4. **Regenerate uv.lock after renaming.** If `pyproject.toml` name changes:
+   ```bash
+   cd apps/ship-fast-agent && uv lock
+   ```
+   The `uv.lock` file contains the package name. A stale lockfile will fail with `Could not find root package`.
+
+5. **Keep Slack channel settings.** The inmo fork uses:
+   - `SLACK_CHANNEL_DEFAULT = "dev"` (channel ID `C0B8F69RQCB`)
+   - Do NOT overwrite with omni's `test` or `-bot-dev` defaults.
+
+6. **Keep PocketBase URL pointing to Ship Fast infra:**
+   - `POCKETBASE_URL=https://db-agent.ship-fast.ai`
+   - `POCKETBASE_ADMIN_EMAIL=hello@ship-fast.ai`
+   - Do NOT use `http://pocketbase:8090` (omni's internal Docker network URL).
+
+## Dokploy Deploy Rules (HARD RULE)
+
+1. **Never overwrite env vars without reading them first.** Before calling `dokploy application save-environment`:
+   ```bash
+   # Read current env from the running container
+   ssh exodus 'sudo docker inspect <container-name> --format "{{json .Config.Env}}"'
+   ```
+   Save the existing env to a backup file. Merge new vars into the existing set. Never replace the entire env block with only the new vars.
+
+2. **Verify buildPath matches the app directory.** Check in Dokploy DB:
+   ```bash
+   ssh exodus 'sudo docker exec dokploy-postgres.* psql -U dokploy -d dokploy -c "SELECT \"buildPath\" FROM application WHERE \"applicationId\"='\''<id>\'';"'
+   ```
+   Must be `apps/ship-fast-agent`, not `apps/ship-fast` or `apps/omni-agent`.
+
+3. **After deploy, verify the container has the new code:**
+   ```bash
+   ssh exodus 'sudo docker exec <container-name> ls /app/app/'
+   ```
+   Must include `review_settings.py`, `ship_fast_review.py`, `pocketbase_client.py`.
+
+4. **After deploy, verify the UI serves the new code:**
+   ```bash
+   curl -sL https://agent.ship-fast.ai/ | grep -i "Gandalf Settings"
+   ```
+   Or use `agent-browser` to snapshot the page and confirm the settings panel renders.
+
+## Build Failure Checklist
+
+If the nixpacks build fails, check in this order:
+
+1. **uv.lock stale?** → `cd apps/ship-fast-agent && uv lock` and commit
+2. **bun binaries not in PATH?** → Ensure `export PATH="/root/.bun/bin:$PATH"` before `bun install -g` and use absolute paths for symlinks (`ln -sf /root/.bun/bin/acpx /usr/local/bin/acpx`)
+3. **Deprecated packages?** → Use `@agentclientprotocol/codex-acp`, NOT `@zed-industries/codex-acp`
+4. **Missing build-time env vars?** → The Dockerfile validates `GITHUB_WEBHOOK_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `SESSION_SECRET` at build time. These come from the runtime env, not buildArgs.
+5. **Wrong buildPath?** → Must be `apps/ship-fast-agent` in Dokploy DB.
+
+## Git History Rules
+
+- **No `omni-agent` references in commit messages.** Use `ship-fast-agent` instead.
+- **No `omni` references in commit messages** when referring to the Ship Fast app.
+- If rewriting history, force-push with `git push --force` (not `--force-with-lease` if remote has diverged).
+- Always clean up filter-branch backup refs: `git for-each-ref --format='%(refname)' refs/original/ | xargs -n1 git update-ref -d`
+
 # Omni Private Infrastructure
 
 For live Omni infrastructure debugging, the Omni host SSH alias is `o`.
