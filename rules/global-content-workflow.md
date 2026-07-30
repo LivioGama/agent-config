@@ -12,24 +12,20 @@ Instead, edit the source and let it pass through to the tools.
 ## Rules Workflow
 
 1. **Add the rule to the source**: Create or edit a file in `~/.agent-config/rules/`
-2. **Regenerate configs**: Run `./build.sh` (this syncs the rule to all tool directories)
+2. **Regenerate configs**: Run `build-agent-config` (this syncs the rule to all tool directories)
 3. **Verify deployment**: Check that the rule appears in the generated files
-4. **Commit and push**: `cd ~/agent-config && git add .agent-config/AGENTS.md rules/ build.sh sync-skills.sh rulesync.jsonc && git commit -m "..." && git push`
 
 ## Skills Workflow
 
 1. **Add the skill to the source**: Create or edit in `~/.agent-config/skills/<skill-name>/SKILL.md`
-2. **Sync to all tools**: Run `./sync-skills.sh` (fans out to `~/.codex/skills`, `~/.cursor/skills`, `~/.gemini/skills`, `~/.devin/skills`, `~/.claude/skills`)
-3. **Commit changes to agent-config repo if needed**
+2. **Sync to all tools**: Run `sync-agent-skills` (fans out to `~/.codex/skills`, `~/.cursor/skills`, `~/.gemini/skills`, `~/.devin/skills`, `~/.claude/skills`)
 
 ## Why This Matters
 
 - The tool directories (`~/.claude/`, `~/.codex/`, etc.) contain **generated files**
-- Editing them directly will be **overwritten** the next time `./build.sh` or `./sync-skills.sh` runs
+- Editing them directly will be **overwritten** the next time `build-agent-config` or `sync-agent-skills` runs
 - The source of truth for rules is `~/.agent-config/rules/*.md`
 - The source of truth for skills is `~/.agent-config/skills/`
-- The build script fans out rules to all tools automatically
-- The sync script fans out skills to all tools automatically
 
 ## Examples
 
@@ -42,12 +38,10 @@ vim ~/.codex/AGENTS.md
 
 ✅ **Correct (Rules):**
 ```bash
-# Edit the source rule in agent-config
+# Edit the source rule
 vim ~/.agent-config/rules/my-new-rule.md
 # Regenerate and sync to all tools
-./build.sh
-# Commit
-cd ~/agent-config && git add .agent-config/AGENTS.md rules/ build.sh sync-skills.sh rulesync.jsonc && git commit -m "add: my new rule" && git push
+build-agent-config
 ```
 
 ❌ **Wrong (Skills):**
@@ -61,7 +55,7 @@ vim ~/.codex/skills/my-skill/SKILL.md
 # Edit the source skill
 vim ~/.agent-config/skills/my-skill/SKILL.md
 # Sync to all tools
-./sync-skills.sh
+sync-agent-skills
 ```
 
 ## Tool-Specific Rules
@@ -71,4 +65,4 @@ If the rule is specific to a single tool, add it to that tool's rules directory:
 - Claude Code: `.claude/rules/`
 - Devin: `.devin/rules/`
 
-Then run `./build.sh` to deploy.
+Then run `build-agent-config` to deploy.

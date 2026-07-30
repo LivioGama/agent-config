@@ -76,6 +76,16 @@ For EVERY piece of work, no exceptions:
 - Before pushing, verify the branch history is linear. If a merge commit would be required, stop and rebase or ask before proceeding.
 - Never run `git merge` for branch integration unless the user explicitly asks for a merge commit.
 
+## Rebase — always pull the target first
+
+- **Before any `git rebase <target>`, ALWAYS fetch + pull `<target>` first.** A rebase onto a stale target is almost useless — it produces conflicts and a branch state that doesn't reflect the latest upstream, forcing a redo.
+- Standard pre-rebase sequence (no exceptions):
+  1. `git fetch origin <target>` (or `git fetch --all` if unsure which remote)
+  2. Update the local `<target>` ref: `git checkout <target> && git pull --ff-only && git checkout -` (or just rebase onto `origin/<target>` directly)
+  3. Only THEN run `git rebase origin/<target>` (or `git rebase <target>`)
+- This applies to every rebase target: `main`, `develop`, feature branches, etc. Never assume the local ref is current — always pull.
+- If the user says "rebase onto X", treat pulling X as an implicit prerequisite, not a separate step to ask about.
+
 # Progress Reporting
 
 For non-trivial work, give honest `Progress: NN/100` updates at meaningful milestones and roughly every 30 seconds while active.
@@ -949,15 +959,15 @@ Instead, edit the source and let it pass through to the tools.
 ## Rules Workflow
 
 1. **Add the rule to the source**: Create or edit a file in `~/.agent-config/rules/`
-2. **Regenerate configs**: Run `./build.sh` (this syncs the rule to all tool directories)
+2. **Regenerate configs**: Run `~/agent-config/build.sh` (this syncs the rule to all tool directories)
 3. **Verify deployment**: Check that the rule appears in the generated files
-4. **Commit and push**: `cd ~/agent-config && git add .agent-config/AGENTS.md rules/ build.sh sync-skills.sh rulesync.jsonc && git commit -m "..." && git push`
+4. **Do NOT commit or push to `~/agent-config`.** That repo is the shared/main tooling repo — it must not contain personal config. The live source of truth is `~/.agent-config/`, which is local-only and not a git repo. Editing `~/.agent-config/rules/` + running `build.sh` is the complete workflow. Never `git add`, `git commit`, or `git push` inside `~/agent-config`.
 
 ## Skills Workflow
 
 1. **Add the skill to the source**: Create or edit in `~/.agent-config/skills/<skill-name>/SKILL.md`
-2. **Sync to all tools**: Run `./sync-skills.sh` (fans out to `~/.codex/skills`, `~/.cursor/skills`, `~/.gemini/skills`, `~/.devin/skills`, `~/.claude/skills`)
-3. **Commit changes to agent-config repo if needed**
+2. **Sync to all tools**: Run `~/agent-config/sync-skills.sh` (fans out to `~/.codex/skills`, `~/.cursor/skills`, `~/.gemini/skills`, `~/.devin/skills`, `~/.claude/skills`)
+3. **Do NOT commit or push to `~/agent-config`.** Same as rules — the repo is shared tooling only.
 
 ## Why This Matters
 
@@ -979,12 +989,11 @@ vim ~/.codex/AGENTS.md
 
 ✅ **Correct (Rules):**
 ```bash
-# Edit the source rule in agent-config
+# Edit the source rule in the live config root
 vim ~/.agent-config/rules/my-new-rule.md
 # Regenerate and sync to all tools
-./build.sh
-# Commit
-cd ~/agent-config && git add .agent-config/AGENTS.md rules/ build.sh sync-skills.sh rulesync.jsonc && git commit -m "add: my new rule" && git push
+~/agent-config/build.sh
+# That's it — do NOT commit or push to ~/agent-config
 ```
 
 ❌ **Wrong (Skills):**
@@ -998,7 +1007,8 @@ vim ~/.codex/skills/my-skill/SKILL.md
 # Edit the source skill
 vim ~/.agent-config/skills/my-skill/SKILL.md
 # Sync to all tools
-./sync-skills.sh
+~/agent-config/sync-skills.sh
+# That's it — do NOT commit or push to ~/agent-config
 ```
 
 ## Tool-Specific Rules
@@ -1107,6 +1117,125 @@ If the nixpacks build fails, check in this order:
 - If rewriting history, force-push with `git push --force` (not `--force-with-lease` if remote has diverged).
 - Always clean up filter-branch backup refs: `git for-each-ref --format='%(refname)' refs/original/ | xargs -n1 git update-ref -d`
 
+# Jira Operations — NEVER Fall Back to GitHub Issues
+
+**CRITICAL RULE: When user asks for Jira, use Jira ONLY. Never fall back to GitHub issues.**
+
+## The Problem
+
+When the user specifically asks for Jira operations (create ticket, close ticket, update status, etc.), you have repeatedly fallen back to GitHub issues when Jira tools weren't immediately available or seemed difficult to use.
+
+**This is WRONG.** If the user asks for Jira, they want Jira — not GitHub issues.
+
+## The Rule
+
+### When user asks for Jira:
+
+1. **Use Jira tools ONLY** — Atlassian MCP server has Jira tools (despite truncation)
+2. **NEVER fall back to GitHub issues** — even if Jira tools seem unavailable or difficult
+3. **Read truncation files** — if tool list is truncated, read the full file to find Jira tools
+4. **Try the tool directly** — attempt to call Jira tools even if not visible in truncated list
+5. **Ask for help if truly unavailable** — if Jira is genuinely inaccessible, ask user to provide access or do it manually
+
+### When you see Jira request:
+
+```bash
+# ❌ WRONG: Don't do this
+"Jira tools seem unavailable, so I'll create a GitHub issue instead."
+
+# ❌ WRONG: Don't do this
+"I can't access Jira, so I'll use GitHub issues as a fallback."
+
+# ✅ CORRECT: Do this
+"Reading truncation file to find Jira tools..."
+# Try to call Jira tools
+# If genuinely unavailable: "Jira tools not accessible. Please provide access or I'll need you to do this manually."
+```
+
+## Enforcement
+
+- **NEVER** use GitHub issues when user specifically asks for Jira
+- **ALWAYS** read truncation files to find Jira tools on Atlassian server
+- **ALWAYS** try calling Jira tools before concluding they're unavailable
+- **ALWAYS** ask for help or manual intervention if Jira is truly inaccessible
+- **NEVER** assume GitHub issues are an acceptable substitute for Jira
+
+## Why This Matters
+
+Jira and GitHub issues are different systems with different purposes, workflows, and stakeholders. When the user asks for Jira, they have a specific reason — project tracking, team coordination, or organizational requirements. Substituting GitHub issues violates their intent and can cause confusion or process violations.
+
+## Examples
+
+User: "Create a Jira ticket for this bug"
+❌ "I'll create a GitHub issue instead since Jira tools seem unavailable."
+✅ "Attempting to create Jira ticket..." (use Atlassian MCP Jira tools)
+
+User: "Close the Jira ticket DEV-616"
+❌ "I'll close the corresponding GitHub issue instead."
+✅ "Attempting to close Jira ticket DEV-616..." (use Atlassian MCP Jira tools)
+
+User: "Update the Jira ticket status"
+❌ "I'll update the GitHub issue status as a fallback."
+✅ "Attempting to update Jira ticket status..." (use Atlassian MCP Jira tools)
+
+# MCP Tool Discovery — NEVER Assume Missing Based on Truncation
+
+**CRITICAL RULE: Never conclude a tool doesn't exist from truncated MCP tool lists.**
+
+## The Problem
+
+When you call `mcp_list_tools`, the output is often truncated (showing only first N tools). You have repeatedly made the mistake of looking at the truncated list, not seeing a specific tool (e.g., Jira tools on Atlassian server), and incorrectly concluding "this tool doesn't exist."
+
+**This is WRONG.** Truncation ≠ absence.
+
+## The Rule
+
+### Before declaring a tool missing:
+
+1. **Read the full truncation file** — if you see `<truncation_notice>` with a file path, READ that file immediately
+2. **Try the tool directly** — attempt to call the tool even if you don't see it in the truncated list
+3. **Check server-specific knowledge** — assume standard tools exist on their expected servers:
+   - Atlassian server → HAS Jira tools (not just Confluence)
+   - GitHub server → HAS GitHub tools
+   - Plane server → HAS Plane tools
+   - etc.
+
+### When you see truncation:
+
+```bash
+# ❌ WRONG: Don't do this
+"I don't see searchJiraUsingJql in the truncated list, so the tool doesn't exist."
+
+# ✅ CORRECT: Do this
+"Output truncated. Reading truncation file to see full tool list..."
+# Then read the file
+# If still not found, TRY THE TOOL ANYWAY
+# Only conclude missing if the call fails with "tool not found" error
+```
+
+## Known Tool Sets (Memorize These)
+
+| Server | Tools (Always Assume Present) |
+|--------|------------------------------|
+| Atlassian | Confluence + Jira tools (ALWAYS both present) |
+| GitHub | GitHub tools |
+| Stripe | Stripe tools |
+| Supabase | Supabase tools |
+| Notion | Notion tools |
+
+**IMPORTANT**: Atlassian server ALWAYS provides both Confluence and Jira tools. It is not possible for one to exist without the other.
+
+## Enforcement
+
+- **NEVER** say "X tool doesn't exist" based on a truncated list
+- **ALWAYS** read truncation files before concluding anything about tool availability
+- **ALWAYS** try calling the tool before declaring it missing
+- **ALWAYS** assume standard tools exist on their named servers
+
+## Why This Matters
+
+You have made this exact mistake 30+ times with the Atlassian MCP server, repeatedly claiming "no Jira tools" when they exist but were truncated. This wastes time and frustrates the user. The fix is simple: read the full list and try the tool before concluding anything.
+
 # Omni Private Infrastructure
 
 For live Omni infrastructure debugging, the Omni host SSH alias is `o`.
@@ -1132,18 +1261,12 @@ When you create, edit, or fix a skill, you MUST sync it to all AI tools before d
 ## Workflow
 
 1. **Create or edit the skill** in `~/.agent-config/skills/your-skill/SKILL.md`
-2. **Commit the skill changes**:
+2. **Sync to all tools**:
    ```bash
-   cd ~/agent-config
-   git add .agent-config/skills/your-skill
-   git commit -m "docs: update your-skill with [changes]"
-   git push
+   ~/agent-config/sync-skills.sh
    ```
-3. **Sync to all tools**:
-   ```bash
-   ./sync-skills.sh
-   ```
-4. **Verify deployment** — the skill should now appear in all tool directories
+3. **Verify deployment** — the skill should now appear in all tool directories
+4. **Do NOT commit or push to `~/agent-config`.** That repo is the shared/main tooling repo — it must not contain personal config. The live source of truth is `~/.agent-config/skills/`, which is local-only.
 
 ## Why This Matters
 
