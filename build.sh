@@ -69,6 +69,9 @@ fi
 # --- Fan out the canonical skill set ---
 [ -x "$(dirname "$0")/sync-skills.sh" ] && "$(dirname "$0")/sync-skills.sh"
 
+# --- Install infrastructure: shell scripts, hooks, MCP configs ---
+[ -x "$(dirname "$0")/sync-infrastructure.sh" ] && "$(dirname "$0")/sync-infrastructure.sh" install
+
 # --- Re-vault via chezmoi so the cron propagates to remote hosts ---
 if command -v chezmoi >/dev/null 2>&1; then
   for f in "$HOME/.claude/CLAUDE.md" "$HOME/.claude/AGENTS.md" "$HOME/.codex/AGENTS.md" "$HOME/.devin/AGENTS.md" "$HOME/.cursor/AGENTS.md" "$HOME/.gemini/AGENTS.md"; do

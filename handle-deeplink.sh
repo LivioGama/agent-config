@@ -51,6 +51,18 @@ if [[ "$URL_PATH" =~ (^|/)skills/([A-Za-z0-9][A-Za-z0-9._-]*)/SKILL\.md$ ]]; the
 elif [[ "$URL_PATH" =~ (^|/)\.agent-config/AGENTS\.md$ ]]; then
   INSTALL_KIND="agent config"
   DEST_DIR="$CONFIG_ROOT"
+elif [[ "$URL_PATH" =~ (^|/)shell/([A-Za-z0-9][A-Za-z0-9._-]*)\.sh$ ]]; then
+  # This is a shell script
+  INSTALL_KIND="shell script"
+  DEST_DIR="$CONFIG_ROOT/shell"
+elif [[ "$URL_PATH" =~ (^|/)hooks/([A-Za-z0-9][A-Za-z0-9._-]*)\.json$ ]]; then
+  # This is a hook config
+  INSTALL_KIND="hook config"
+  DEST_DIR="$CONFIG_ROOT/hooks"
+elif [[ "$URL_PATH" =~ (^|/)mcp/([A-Za-z0-9][A-Za-z0-9._-]*)\.json$ ]]; then
+  # This is an MCP server config
+  INSTALL_KIND="mcp server"
+  DEST_DIR="$CONFIG_ROOT/mcp"
 else
   # This is a rule
   INSTALL_KIND="rule"
@@ -70,6 +82,9 @@ if [ "$INSTALL_KIND" = "skill" ]; then
   mkdir -p "$(dirname "$DEST")"
 elif [ "$INSTALL_KIND" = "agent config" ]; then
   DEST="$DEST_DIR/AGENTS.md"
+elif [ "$INSTALL_KIND" = "shell script" ] || [ "$INSTALL_KIND" = "hook config" ] || [ "$INSTALL_KIND" = "mcp server" ]; then
+  FILENAME=$(basename "$URL_PATH")
+  DEST="$DEST_DIR/$FILENAME"
 else
   # Extract filename for rules
   FILENAME=$(basename "$URL_PATH")
@@ -104,6 +119,9 @@ AGENT_CONFIG_ROOT="$CONFIG_ROOT" ./build.sh
 case "$INSTALL_KIND" in
   "agent config") DONE_KIND="Agent Config" ;;
   skill) DONE_KIND="Skill" ;;
+  "shell script") DONE_KIND="Shell Script" ;;
+  "hook config") DONE_KIND="Hook Config" ;;
+  "mcp server") DONE_KIND="MCP Server" ;;
   *) DONE_KIND="Rule" ;;
 esac
 echo "Done! $DONE_KIND installed and synced."

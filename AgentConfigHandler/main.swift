@@ -51,6 +51,9 @@ enum InstallKind {
     case agents
     case rule
     case skill
+    case shellScript
+    case hookConfig
+    case mcpServer
 
     var label: String {
         switch self {
@@ -60,8 +63,19 @@ enum InstallKind {
             return "rule"
         case .skill:
             return "skill"
+        case .shellScript:
+            return "shell script"
+        case .hookConfig:
+            return "hook config"
+        case .mcpServer:
+            return "mcp server"
         }
     }
+}
+
+func isSafeFilename(_ name: String, ext: String) -> Bool {
+    let pattern = "^[A-Za-z0-9][A-Za-z0-9._-]*\\.\(ext)$"
+    return name.range(of: pattern, options: .regularExpression) != nil
 }
 
 func install(from deeplink: String) throws {
@@ -110,6 +124,30 @@ func install(from deeplink: String) throws {
             .appendingPathComponent("skills")
             .appendingPathComponent(skillName)
             .appendingPathComponent("SKILL.md")
+    } else if let shellIndex = pathComponents.firstIndex(of: "shell"),
+              shellIndex + 1 == pathComponents.count - 1 {
+        let filename = pathComponents[shellIndex + 1]
+        guard isSafeFilename(filename, ext: "sh") else {
+            throw HandlerError.message("Invalid shell script filename. Expected a safe .sh basename")
+        }
+        installKind = .shellScript
+        destPath = configRoot.appendingPathComponent("shell").appendingPathComponent(filename)
+    } else if let hooksIndex = pathComponents.firstIndex(of: "hooks"),
+              hooksIndex + 1 == pathComponents.count - 1 {
+        let filename = pathComponents[hooksIndex + 1]
+        guard isSafeFilename(filename, ext: "json") else {
+            throw HandlerError.message("Invalid hook config filename. Expected a safe .json basename")
+        }
+        installKind = .hookConfig
+        destPath = configRoot.appendingPathComponent("hooks").appendingPathComponent(filename)
+    } else if let mcpIndex = pathComponents.firstIndex(of: "mcp"),
+              mcpIndex + 1 == pathComponents.count - 1 {
+        let filename = pathComponents[mcpIndex + 1]
+        guard isSafeFilename(filename, ext: "json") else {
+            throw HandlerError.message("Invalid MCP config filename. Expected a safe .json basename")
+        }
+        installKind = .mcpServer
+        destPath = configRoot.appendingPathComponent("mcp").appendingPathComponent(filename)
     } else {
         let filename = sourceURL.lastPathComponent
         guard isSafeRuleFilename(filename) else {

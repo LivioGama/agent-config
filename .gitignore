@@ -10,6 +10,8 @@
 !/build.sh
 !/README.md
 !/sync-skills.sh
+!/sync-infrastructure.sh
+!/sync-mcp-servers.sh
 !/install.sh
 !/rulesync.jsonc
 !/AgentConfigHandler

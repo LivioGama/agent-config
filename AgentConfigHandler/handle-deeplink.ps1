@@ -44,15 +44,24 @@ $ConfigRoot = if ($env:AGENT_CONFIG_ROOT) {
 
 $BuildScript = Join-Path $RepoDir "build.sh"
 
-# Determine if this is a skill or rule based on URL path
+# Determine if this is a skill, rule, shell script, hook config, or MCP config based on URL path
 $Uri = [Uri]$Url
 $UrlPath = $Uri.AbsolutePath.TrimStart("/")
 $IsSkill = $UrlPath -match "(^|/)skills/([A-Za-z0-9][A-Za-z0-9._-]*)/SKILL\.md$"
 $IsAgentConfig = $UrlPath -match "(^|/)\.agent-config/AGENTS\.md$"
+$IsShellScript = $UrlPath -match "(^|/)shell/([A-Za-z0-9][A-Za-z0-9._-]*)\.sh$"
+$IsHookConfig = $UrlPath -match "(^|/)hooks/([A-Za-z0-9][A-Za-z0-9._-]*)\.json$"
+$IsMcpServer = $UrlPath -match "(^|/)mcp/([A-Za-z0-9][A-Za-z0-9._-]*)\.json$"
 $DestDir = if ($IsSkill) {
     Join-Path $ConfigRoot "skills"
 } elseif ($IsAgentConfig) {
     $ConfigRoot
+} elseif ($IsShellScript) {
+    Join-Path $ConfigRoot "shell"
+} elseif ($IsHookConfig) {
+    Join-Path $ConfigRoot "hooks"
+} elseif ($IsMcpServer) {
+    Join-Path $ConfigRoot "mcp"
 } else {
     Join-Path $ConfigRoot "rules"
 }
@@ -72,6 +81,8 @@ if ($IsSkill) {
     }
 } elseif ($IsAgentConfig) {
     $DestPath = Join-Path $DestDir "AGENTS.md"
+} elseif ($IsShellScript -or $IsHookConfig -or $IsMcpServer) {
+    $DestPath = Join-Path $DestDir (Split-Path $Uri.AbsolutePath -Leaf)
 } else {
     $Filename = Split-Path $Uri.AbsolutePath -Leaf
     if ($Filename -notmatch "^[A-Za-z0-9][A-Za-z0-9._-]*\.md$") {
@@ -82,7 +93,7 @@ if ($IsSkill) {
 }
 
 # Download the file
-$InstallKind = if ($IsSkill) { "skill" } elseif ($IsAgentConfig) { "agent config" } else { "rule" }
+$InstallKind = if ($IsSkill) { "skill" } elseif ($IsAgentConfig) { "agent config" } elseif ($IsShellScript) { "shell script" } elseif ($IsHookConfig) { "hook config" } elseif ($IsMcpServer) { "mcp server" } else { "rule" }
 Write-Host "Downloading $InstallKind from $Url..."
 $TempPath = Join-Path (Split-Path $DestPath -Parent) "$([IO.Path]::GetFileName($DestPath)).download.$([guid]::NewGuid()).tmp"
 try {
@@ -133,5 +144,5 @@ try {
     Pop-Location
 }
 
-$DoneKind = if ($IsSkill) { "Skill" } elseif ($IsAgentConfig) { "Agent Config" } else { "Rule" }
+$DoneKind = if ($IsSkill) { "Skill" } elseif ($IsAgentConfig) { "Agent Config" } elseif ($IsShellScript) { "Shell Script" } elseif ($IsHookConfig) { "Hook Config" } elseif ($IsMcpServer) { "MCP Server" } else { "Rule" }
 Write-Host "Done! $DoneKind installed and synced."
