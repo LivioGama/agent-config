@@ -1,0 +1,242 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# scaffold-agent-config — create a new agent-config-compatible GitHub repo.
+# Usage: scaffold-agent-config <type> <name> <description> [repo-name]
+# type: skill | rule | shell | hook | mcp | infra
+
+TYPE="${1:?Usage: scaffold-agent-config <type> <name> <description> [repo-name]}"
+NAME="${2:?Component name required (kebab-case)}"
+DESC="${3:?Description required}"
+REPO_NAME="${4:-$NAME}"
+GITHUB_USER="${GITHUB_USER:-LivioGama}"
+YEAR="$(date +%Y)"
+
+# Title-case a kebab-case name
+title_case() {
+  echo "$1" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++)$i=toupper(substr($i,1,1))substr($i,2)}1'
+}
+
+# Create project directory
+PROJECT_DIR="$HOME/$REPO_NAME"
+if [ -d "$PROJECT_DIR" ]; then
+  echo "Error: $PROJECT_DIR already exists"
+  exit 1
+fi
+mkdir -p "$PROJECT_DIR"
+cd "$PROJECT_DIR"
+
+# Create directory structure based on type
+case "$TYPE" in
+  skill)
+    mkdir -p ".agent-config/skills/$NAME"
+    cat > ".agent-config/skills/$NAME/SKILL.md" <<SKILL
+---
+name: $NAME
+description: $DESC
+---
+
+# $(title_case "$NAME")
+
+$DESC
+
+## When to Use
+
+- *(describe trigger conditions)*
+
+## How It Works
+
+*(describe the skill logic)*
+SKILL
+    INSTALL_PATH=".agent-config/skills/$NAME/SKILL.md"
+    BADGE_LABEL="Install $NAME skill"
+    TYPE_BADGE="type-skill-black"
+    ;;
+  rule)
+    mkdir -p "rules"
+    cat > "rules/$NAME.md" <<RULE
+# $(title_case "$NAME")
+
+$DESC
+
+## Rule
+
+*(describe the rule)*
+RULE
+    INSTALL_PATH="rules/$NAME.md"
+    BADGE_LABEL="Install $NAME rule"
+    TYPE_BADGE="type-rule-blue"
+    ;;
+  shell)
+    mkdir -p "shell"
+    cat > "shell/$NAME.sh" <<SHELL
+#!/usr/bin/env bash
+set -euo pipefail
+
+# $NAME — $DESC
+echo "$NAME: not yet implemented"
+SHELL
+    chmod +x "shell/$NAME.sh"
+    INSTALL_PATH="shell/$NAME.sh"
+    BADGE_LABEL="Install $NAME shell script"
+    TYPE_BADGE="type-shell-blue"
+    ;;
+  hook)
+    mkdir -p "hooks"
+    cat > "hooks/$NAME.json" <<HOOK
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "exec",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\$HOME/.agent-config/shell/$NAME-hook.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+HOOK
+    INSTALL_PATH="hooks/$NAME.json"
+    BADGE_LABEL="Install $NAME hook config"
+    TYPE_BADGE="type-hook-purple"
+    ;;
+  mcp)
+    mkdir -p "mcp"
+    cat > "mcp/$NAME.json" <<MCP
+{
+  "transport": "http",
+  "url": "https://example.com/mcp",
+  "description": "$DESC"
+}
+MCP
+    INSTALL_PATH="mcp/$NAME.json"
+    BADGE_LABEL="Install $NAME MCP server"
+    TYPE_BADGE="type-mcp-green"
+    ;;
+  infra)
+    mkdir -p ".agent-config/skills/$NAME" "shell" "hooks"
+    cat > ".agent-config/skills/$NAME/SKILL.md" <<SKILL
+---
+name: $NAME
+description: $DESC
+---
+
+# $(title_case "$NAME")
+
+$DESC
+
+## When to Use
+
+- *(describe trigger conditions)*
+
+## How It Works
+
+*(describe the infrastructure skill logic)*
+SKILL
+    cat > "shell/$NAME.sh" <<SHELL
+#!/usr/bin/env bash
+set -euo pipefail
+
+# $NAME — $DESC
+echo "$NAME: not yet implemented"
+SHELL
+    chmod +x "shell/$NAME.sh"
+    INSTALL_PATH=".agent-config/skills/$NAME/SKILL.md"
+    BADGE_LABEL="Install $NAME"
+    TYPE_BADGE="type-infrastructure-1f883d"
+    ;;
+  *)
+    echo "Unknown type: $TYPE (use: skill|rule|shell|hook|mcp|infra)"
+    exit 1
+    ;;
+esac
+
+# Generate README.md
+cat > README.md <<README
+# $NAME
+
+![Status](https://img.shields.io/badge/status-active-success)
+![Type](https://img.shields.io/badge/$TYPE_BADGE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+<a href="https://liviogama.github.io/agent-config/redirect.html?url=https://raw.githubusercontent.com/$GITHUB_USER/$REPO_NAME/main/$INSTALL_PATH"><img src="https://raw.githubusercontent.com/$GITHUB_USER/agent-config/main/assets/install-badge-small.jpg" alt="$BADGE_LABEL" height="40" /></a>
+
+$DESC
+
+## Overview
+
+*(describe the project)*
+
+## Installation
+
+### Via agent-config (recommended)
+
+Click the install badge above, or use the install URL:
+
+\`\`\`text
+https://liviogama.github.io/agent-config/redirect.html?url=https://raw.githubusercontent.com/$GITHUB_USER/$REPO_NAME/main/$INSTALL_PATH
+\`\`\`
+
+### Manual
+
+\`\`\`bash
+git clone https://github.com/$GITHUB_USER/$REPO_NAME.git
+cd $REPO_NAME
+# Copy files to ~/.agent-config/ based on type
+\`\`\`
+
+## Usage
+
+*(describe usage)*
+
+## License
+
+MIT
+
+## Contributing
+
+Contributions welcome! This is part of the [agent-config](https://github.com/$GITHUB_USER/agent-config) ecosystem.
+README
+
+# Generate LICENSE
+cat > LICENSE <<LICENSE
+MIT License
+
+Copyright (c) $YEAR $GITHUB_USER
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+LICENSE
+
+# Git init + commit
+git init
+git add .
+git commit -m "Initial commit: $NAME ($TYPE)"
+
+# Create GitHub repo and push
+gh repo create "$GITHUB_USER/$REPO_NAME" --public --source=. --push --description "$DESC"
+
+echo ""
+echo "✅ Created $REPO_NAME ($TYPE)"
+echo "   Repo: https://github.com/$GITHUB_USER/$REPO_NAME"
+echo "   Install URL:"
+echo "   https://liviogama.github.io/agent-config/redirect.html?url=https://raw.githubusercontent.com/$GITHUB_USER/$REPO_NAME/main/$INSTALL_PATH"

@@ -36,6 +36,26 @@ curl -fsSL https://raw.githubusercontent.com/LivioGama/agent-config/main/install
 
 <a href="https://LivioGama.github.io/agent-config/redirect.html?path=rules/global-content-workflow.md"><img src="assets/install-badge.jpg" height="40" alt="Install Global Content Policy" /></a>
 
+**Install MCP Finder Skill:**
+*(Search the official MCP registry — prioritizes OAuth over API keys)*
+
+<a href="https://liviogama.github.io/agent-config/redirect.html?url=https://raw.githubusercontent.com/LivioGama/agent-config/main/.agent-config/skills/mcp-finder/SKILL.md"><img src="assets/install-badge-small.jpg" alt="Install mcp-finder skill" height="40" /></a>
+
+**Install Scaffold Skill:**
+*(Scaffold new agent-config repos with badges, README, LICENSE — no copying needed)*
+
+<a href="https://liviogama.github.io/agent-config/redirect.html?url=https://raw.githubusercontent.com/LivioGama/agent-config/main/.agent-config/skills/agent-config-scaffold/SKILL.md"><img src="assets/install-badge-small.jpg" alt="Install agent-config-scaffold skill" height="40" /></a>
+
+**Scaffold a new repo (CLI):**
+```bash
+# Clone agent-config, then:
+./scaffold-agent-config skill "my-skill" "Does awesome things with AI agents"
+./scaffold-agent-config rule "no-console-log" "Ban console.log in production"
+./scaffold-agent-config mcp "my-api" "Connect agents to my API"
+./scaffold-agent-config infra "my-infra" "Shell shim + hook for my tool"
+```
+Creates a new GitHub repo with README + badges + LICENSE + correct directory structure.
+
 **Manual install:**
 ```bash
 git clone https://github.com/LivioGama/agent-config.git
