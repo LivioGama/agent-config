@@ -4,7 +4,9 @@
 !/.agent-config
 !/.agent-config/AGENTS.md
 /.agent-config/rules/
-/.agent-config/skills/
+/.agent-config/skills/*
+!/.agent-config/skills/mcp-finder/
+!/.agent-config/skills/agent-config-scaffold/
 !/.rulesync
 !/.rulesync/**
 !/build.sh
@@ -13,6 +15,7 @@
 !/sync-infrastructure.sh
 !/sync-mcp-servers.sh
 !/install.sh
+!/scaffold-agent-config
 !/rulesync.jsonc
 !/AgentConfigHandler
 !/AGENT-CONFIG-DEEPLINK.md
